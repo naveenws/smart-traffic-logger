@@ -40,16 +40,25 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 def generate_qr_code(challan_id):
-    # Generates a QR code linking to the specific challan status
-    # Assumes running on localhost:5000 for development
-    url = f"http://127.0.0.1:5000/challan/{challan_id}"
+    # Generates a QR code linking to the specific challan status dynamically
+    from flask import request
+    
+    try:
+        base_url = request.host_url.rstrip('/')
+    except RuntimeError:
+        base_url = "http://127.0.0.1:5000"
+        
+    url = f"{base_url}/challan/{challan_id}"
     qr = qrcode.QRCode(version=1, box_size=10, border=5)
     qr.add_data(url)
     qr.make(fit=True)
     img = qr.make_image(fill='black', back_color='white')
     
+    qrcodes_dir = os.path.join(app.root_path, 'static', 'qrcodes')
+    os.makedirs(qrcodes_dir, exist_ok=True)
+    
     filename = f"{challan_id}.png"
-    filepath = os.path.join(app.root_path, 'static', 'qrcodes', filename)
+    filepath = os.path.join(qrcodes_dir, filename)
     img.save(filepath)
     return f"/static/qrcodes/{filename}"
 
@@ -133,16 +142,15 @@ def search_vehicle():
         return render_template('search_results.html', violations=violations, vehicle_number=vehicle_number.upper())
     return redirect(url_for('index'))
 
-def init_db():
-    with app.app_context():
-        db.create_all()
-        # Create an admin user if none exists
-        if not User.query.filter_by(username='admin').first():
-            hashed_password = generate_password_hash('admin123', method='pbkdf2:sha256')
-            admin = User(username='admin', password=hashed_password, role='admin')
-            db.session.add(admin)
-            db.session.commit()
+# Initialize database automatically when the app starts
+with app.app_context():
+    db.create_all()
+    # Create an admin user if none exists
+    if not User.query.filter_by(username='admin').first():
+        hashed_password = generate_password_hash('admin123', method='pbkdf2:sha256')
+        admin = User(username='admin', password=hashed_password, role='admin')
+        db.session.add(admin)
+        db.session.commit()
 
 if __name__ == '__main__':
-    init_db()
     app.run(debug=True)
