@@ -35,6 +35,23 @@
                     <button type="submit" class="btn btn-primary w-100">Log Violation & Generate Challan</button>
                 </form>
             </div>
+        <div class="card mt-4">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="fa-solid fa-user-plus"></i> Add New Officer</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('add_officer') }}" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">New Username</label>
+                        <input type="text" class="form-control" name="new_username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Temporary Password</label>
+                        <input type="password" class="form-control" name="new_password" required>
+                    </div>
+                    <button type="submit" class="btn btn-secondary w-100">Create Officer Account</button>
+                </form>
+            </div>
         </div>
     </div>
     

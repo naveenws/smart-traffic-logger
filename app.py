@@ -119,6 +119,23 @@ def admin_dashboard():
     violations = Violation.query.order_by(Violation.date_issued.desc()).all()
     return render_template('admin_dashboard.html', violations=violations)
 
+@app.route('/add_officer', methods=['POST'])
+@login_required
+def add_officer():
+    username = request.form.get('new_username')
+    password = request.form.get('new_password')
+    
+    if User.query.filter_by(username=username).first():
+        flash(f"Error: Username '{username}' already exists!", 'danger')
+    else:
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+        new_admin = User(username=username, password=hashed_password, role='officer')
+        db.session.add(new_admin)
+        db.session.commit()
+        flash(f"Success! New officer '{username}' added securely.", 'success')
+        
+    return redirect(url_for('admin_dashboard'))
+
 @app.route('/update_status/<int:violation_id>', methods=['POST'])
 @login_required
 def update_status(violation_id):
