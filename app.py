@@ -1,0 +1,148 @@
+import os
+from flask import Flask, render_template, request, redirect, url_for, flash
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+import qrcode
+from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
+import uuid
+
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'your-secret-key-here'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///traffic.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+# Models
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(150), unique=True, nullable=False)
+    password = db.Column(db.String(150), nullable=False)
+    role = db.Column(db.String(50), default='officer')
+
+class Violation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    challan_id = db.Column(db.String(50), unique=True, nullable=False)
+    vehicle_number = db.Column(db.String(20), nullable=False)
+    violation_type = db.Column(db.String(100), nullable=False)
+    location = db.Column(db.String(100), nullable=False)
+    date_issued = db.Column(db.DateTime, default=datetime.utcnow)
+    fine_amount = db.Column(db.Float, nullable=False)
+    status = db.Column(db.String(20), default='Unpaid')
+    qr_code_path = db.Column(db.String(200))
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+def generate_qr_code(challan_id):
+    # Generates a QR code linking to the specific challan status
+    # Assumes running on localhost:5000 for development
+    url = f"http://127.0.0.1:5000/challan/{challan_id}"
+    qr = qrcode.QRCode(version=1, box_size=10, border=5)
+    qr.add_data(url)
+    qr.make(fit=True)
+    img = qr.make_image(fill='black', back_color='white')
+    
+    filename = f"{challan_id}.png"
+    filepath = os.path.join(app.root_path, 'static', 'qrcodes', filename)
+    img.save(filepath)
+    return f"/static/qrcodes/{filename}"
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        user = User.query.filter_by(username=username).first()
+        if user and check_password_hash(user.password, password):
+            login_user(user)
+            return redirect(url_for('admin_dashboard'))
+        else:
+            flash('Invalid username or password', 'danger')
+    return render_template('login.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
+@app.route('/dashboard', methods=['GET', 'POST'])
+@login_required
+def admin_dashboard():
+    if request.method == 'POST':
+        vehicle_number = request.form.get('vehicle_number').upper()
+        violation_type = request.form.get('violation_type')
+        location = request.form.get('location')
+        fine_amount = float(request.form.get('fine_amount'))
+        
+        challan_id = str(uuid.uuid4())[:8].upper() # Generate 8 char ID
+        
+        new_violation = Violation(
+            challan_id=challan_id,
+            vehicle_number=vehicle_number,
+            violation_type=violation_type,
+            location=location,
+            fine_amount=fine_amount
+        )
+        
+        # Save to DB first to get object setup
+        db.session.add(new_violation)
+        db.session.commit()
+        
+        # Generate QR Code
+        qr_path = generate_qr_code(challan_id)
+        new_violation.qr_code_path = qr_path
+        db.session.commit()
+        
+        flash('Violation recorded successfully!', 'success')
+        return redirect(url_for('admin_dashboard'))
+        
+    violations = Violation.query.order_by(Violation.date_issued.desc()).all()
+    return render_template('admin_dashboard.html', violations=violations)
+
+@app.route('/update_status/<int:violation_id>', methods=['POST'])
+@login_required
+def update_status(violation_id):
+    violation = Violation.query.get_or_404(violation_id)
+    if violation.status == 'Unpaid':
+        violation.status = 'Paid'
+        db.session.commit()
+        flash(f'Status for {violation.vehicle_number} updated to Paid.', 'success')
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/challan/<challan_id>')
+def view_challan(challan_id):
+    violation = Violation.query.filter_by(challan_id=challan_id).first_or_404()
+    return render_template('challan.html', violation=violation)
+
+@app.route('/search', methods=['GET'])
+def search_vehicle():
+    vehicle_number = request.args.get('vehicle_number')
+    if vehicle_number:
+        violations = Violation.query.filter_by(vehicle_number=vehicle_number.upper()).all()
+        return render_template('search_results.html', violations=violations, vehicle_number=vehicle_number.upper())
+    return redirect(url_for('index'))
+
+def init_db():
+    with app.app_context():
+        db.create_all()
+        # Create an admin user if none exists
+        if not User.query.filter_by(username='admin').first():
+            hashed_password = generate_password_hash('admin123', method='pbkdf2:sha256')
+            admin = User(username='admin', password=hashed_password, role='admin')
+            db.session.add(admin)
+            db.session.commit()
+
+if __name__ == '__main__':
+    init_db()
+    app.run(debug=True)

@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-primary">
+            <div class="card-header bg-primary text-white text-center">
+                <h4 class="mb-0">e-Challan Receipt</h4>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <img src="{{ violation.qr_code_path }}" alt="QR Code" class="img-fluid border p-2" style="max-width: 200px;">
+                    <p class="text-muted mt-2 small">Scan to verify</p>
+                </div>
+                
+                <table class="table table-bordered">
+                    <tr>
+                        <th class="bg-light">Challan ID</th>
+                        <td>{{ violation.challan_id }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">Vehicle Number</th>
+                        <td><strong>{{ violation.vehicle_number }}</strong></td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">Violation</th>
+                        <td>{{ violation.violation_type }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">Location</th>
+                        <td>{{ violation.location }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">Date & Time</th>
+                        <td>{{ violation.date_issued.strftime('%Y-%m-%d %H:%M') }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">Fine Amount</th>
+                        <td class="text-danger fw-bold">₹{{ violation.fine_amount }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">Status</th>
+                        <td>
+                            {% if violation.status == 'Paid' %}
+                                <span class="badge bg-success fs-6"><i class="fa-solid fa-check-circle"></i> PAID</span>
+                            {% else %}
+                                <span class="badge bg-danger fs-6"><i class="fa-solid fa-circle-exclamation"></i> UNPAID</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+                
+                {% if violation.status == 'Unpaid' %}
+                <div class="alert alert-warning mt-3">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Please visit the nearest traffic police station to pay this fine, or wait for the online payment gateway integration.
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer text-center d-print-none">
+                <button onclick="window.print()" class="btn btn-secondary"><i class="fa-solid fa-print"></i> Print Challan</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Log New Violation</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Vehicle Number</label>
+                        <input type="text" class="form-control" name="vehicle_number" placeholder="TN01AB1234" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Violation Type</label>
+                        <select class="form-select" name="violation_type" required>
+                            <option value="">Select...</option>
+                            <option value="No Helmet">No Helmet</option>
+                            <option value="Overspeeding">Overspeeding</option>
+                            <option value="Signal Jumping">Signal Jumping</option>
+                            <option value="Drunk Driving">Drunk Driving</option>
+                            <option value="No Seatbelt">No Seatbelt</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Location</label>
+                        <input type="text" class="form-control" name="location" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Fine Amount (₹)</label>
+                        <input type="number" class="form-control" name="fine_amount" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Log Violation & Generate Challan</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-dark">
+                <h5 class="mb-0">Recent Violations</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Challan ID</th>
+                                <th>Vehicle</th>
+                                <th>Violation</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for v in violations %}
+                            <tr>
+                                <td><a href="{{ url_for('view_challan', challan_id=v.challan_id) }}" target="_blank">{{ v.challan_id }}</a></td>
+                                <td><strong>{{ v.vehicle_number }}</strong></td>
+                                <td>{{ v.violation_type }}</td>
+                                <td>{{ v.date_issued.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>₹{{ v.fine_amount }}</td>
+                                <td>
+                                    {% if v.status == 'Paid' %}
+                                        <span class="badge bg-success">Paid</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Unpaid</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if v.status == 'Unpaid' %}
+                                    <form action="{{ url_for('update_status', violation_id=v.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-outline-success">Mark Paid</button>
+                                    </form>
+                                    {% else %}
+                                    <button class="btn btn-sm btn-secondary" disabled>Settled</button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center">No violations recorded yet.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

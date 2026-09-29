@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="mb-4">
+            <img src="{{ url_for('static', filename='img/parade.jpg') }}" alt="Police Parade" class="img-fluid rounded shadow-sm" style="width: 100%; max-height: 300px; object-fit: cover;">
+        </div>
+        <div class="safety-rules">
+            <h3 class="mb-4"><i class="fa-solid fa-triangle-exclamation text-warning"></i> Road Safety Instructions / சாலை பாதுகாப்பு விதிமுறைகள்</h3>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>English</h5>
+                    <ul>
+                        <li>Always wear a helmet while riding a two-wheeler.</li>
+                        <li>Fasten your seatbelt while driving a car.</li>
+                        <li>Do not use mobile phones while driving.</li>
+                        <li>Adhere to speed limits and traffic signals.</li>
+                        <li>Do not drink and drive.</li>
+                        <li>Yield to pedestrians at crosswalks.</li>
+                    </ul>
+                </div>
+                <div class="col-md-6 tamil-text">
+                    <h5>தமிழ்</h5>
+                    <ul>
+                        <li>இருசக்கர வாகனம் ஓட்டும்போது எப்போதும் தலைக்கவசம் அணியுங்கள்.</li>
+                        <li>கார் ஓட்டும்போது சீட் பெல்ட் அணியுங்கள்.</li>
+                        <li>வாகனம் ஓட்டும்போது செல்போன் பயன்படுத்தக் கூடாது.</li>
+                        <li>வேக வரம்புகள் மற்றும் போக்குவரத்து சிக்னல்களை மதிக்கவும்.</li>
+                        <li>மது அருந்திவிட்டு வாகனம் ஓட்டக் கூடாது.</li>
+                        <li>பாதசாரிகளுக்கு முன்னுரிமை கொடுங்கள்.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5><i class="fa-solid fa-info-circle"></i> About e-Challan System</h5>
+            </div>
+            <div class="card-body">
+                <p>Welcome to the digital traffic violation logging and checking system. Citizens can use the search tool to check if their vehicle has any pending traffic violations. To pay a fine, please scan the QR code present on your physical e-challan receipt.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-dark">
+                <h5 class="mb-0"><i class="fa-solid fa-magnifying-glass"></i> Check Violation Status</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('search_vehicle') }}" method="GET">
+                    <div class="mb-3">
+                        <label for="vehicle_number" class="form-label">Enter Vehicle Number</label>
+                        <input type="text" class="form-control" id="vehicle_number" name="vehicle_number" placeholder="e.g. TN01AB1234" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Check Status</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header bg-secondary">
+                <h5 class="mb-0"><i class="fa-solid fa-building-shield"></i> Officer Login</h5>
+            </div>
+            <div class="card-body text-center">
+                <p>Authorized traffic personnel only.</p>
+                <a href="{{ url_for('login') }}" class="btn btn-outline-secondary w-100">Login to Portal</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

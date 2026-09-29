@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Traffic Violation Logger | Tamil Nadu Police</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- Top Government Bar -->
+    <div class="top-bar">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <img src="{{ url_for('static', filename='img/logo.jpg') }}" alt="Logo" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                <h4 class="mb-0">Tamil Nadu Police</h4>
+            </div>
+            <div class="d-none d-md-block">
+                <a href="#" data-bs-toggle="modal" data-bs-target="#helplineModal">Helpline Numbers</a>
+                <a href="#" onclick="alert('தமிழ் பதிப்பு விரைவில் வரும் (Tamil version coming soon)'); return false;">தமிழ் மொழி</a>
+                <a href="#" onclick="changeFontSize('normal'); return false;" title="Normal Text">A</a>
+                <a href="#" onclick="changeFontSize('large'); return false;" title="Large Text">A+</a>
+                <a href="#" onclick="changeFontSize('xlarge'); return false;" title="Extra Large Text">A++</a>
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}"><i class="fa-solid fa-circle-user fa-lg"></i></a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light main-nav">
+        <div class="container">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-toggle="target" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}"><i class="fa-solid fa-house"></i> Home</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            About Us
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="aboutDropdown">
+                            <li><a class="dropdown-item" href="#">Organization Structure</a></li>
+                            <li><a class="dropdown-item" href="#">History of TN Police</a></li>
+                            <li><a class="dropdown-item" href="#">Director General of Police</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="servicesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Citizen Services
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="servicesDropdown">
+                            <li><a class="dropdown-item" href="#">View FIR / CSR</a></li>
+                            <li><a class="dropdown-item" href="#">Missing Persons</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('index') }}">Check Traffic Challan Status</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="contactDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Contact Us
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="contactDropdown">
+                            <li><a class="dropdown-item" href="#">State Police Headquarters</a></li>
+                            <li><a class="dropdown-item" href="#">District Police Offices</a></li>
+                            <li><a class="dropdown-item" href="#">Women Help Desk</a></li>
+                        </ul>
+                    </li>
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link text-primary fw-bold" href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-gauge"></i> Officer Dashboard</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <div class="container content-section">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Helpline Modal -->
+    <div class="modal fade" id="helplineModal" tabindex="-1" aria-labelledby="helplineModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="helplineModalLabel"><i class="fa-solid fa-phone"></i> Emergency Helpline Numbers</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="list-group">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Police (Emergency)
+                            <span class="badge bg-danger rounded-pill fs-6">100</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Ambulance
+                            <span class="badge bg-danger rounded-pill fs-6">108</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Traffic Police
+                            <span class="badge bg-primary rounded-pill fs-6">103</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Women Helpline
+                            <span class="badge bg-warning text-dark rounded-pill fs-6">1091</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        function changeFontSize(size) {
+            let body = document.body;
+            if (size === 'normal') {
+                body.style.fontSize = '1rem';
+            } else if (size === 'large') {
+                body.style.fontSize = '1.1rem';
+            } else if (size === 'xlarge') {
+                body.style.fontSize = '1.25rem';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+:root {
+    --primary-color: #5e458e; /* Tamil Nadu Police Purple */
+    --secondary-color: #ffffff;
+    --text-color: #333333;
+    --hover-color: #4a3473;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+    color: var(--text-color);
+}
+
+.top-bar {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 10px 0;
+    font-size: 14px;
+}
+
+.top-bar a {
+    color: white;
+    text-decoration: none;
+    margin-right: 15px;
+}
+
+.top-bar a:hover {
+    text-decoration: underline;
+}
+
+.navbar-brand img {
+    height: 50px;
+    margin-right: 15px;
+}
+
+.main-nav {
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.main-nav .nav-link {
+    color: #555;
+    font-weight: 500;
+    padding: 15px 20px !important;
+}
+
+.main-nav .nav-link:hover {
+    color: var(--primary-color);
+    background-color: #f1f1f1;
+}
+
+.content-section {
+    padding: 40px 0;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.card-header {
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 8px 8px 0 0 !important;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--hover-color);
+    border-color: var(--hover-color);
+}
+
+.safety-rules {
+    background-color: #fff3cd;
+    border-left: 5px solid #ffc107;
+    padding: 20px;
+    margin-bottom: 30px;
+    border-radius: 5px;
+}
+
+.tamil-text {
+    font-size: 1.1em;
+    line-height: 1.6;
+}
