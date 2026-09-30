@@ -9,7 +9,7 @@
             </div>
             <div class="card-body">
                 <div class="text-center mb-4">
-                    <img src="{{ violation.qr_code_path }}" alt="QR Code" class="img-fluid border p-2" style="max-width: 200px;">
+                    <img src="{{ url_for('serve_qr_code', challan_id=violation.challan_id) }}" alt="QR Code" class="img-fluid border p-2" style="max-width: 200px;">
                     <p class="text-muted mt-2 small">Scan to verify</p>
                 </div>
                 

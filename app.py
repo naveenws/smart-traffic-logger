@@ -1,5 +1,6 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash
+import io
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import qrcode
@@ -9,7 +10,13 @@ import uuid
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///traffic.db'
+
+# Support both local SQLite and Cloud PostgreSQL (Supabase)
+db_url = os.environ.get('DATABASE_URL', 'sqlite:///traffic.db')
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -39,10 +46,9 @@ class Violation(db.Model):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-def generate_qr_code(challan_id):
-    # Generates a QR code linking to the specific challan status dynamically
-    from flask import request
-    
+@app.route('/qr_code/<challan_id>.png')
+def serve_qr_code(challan_id):
+    # Generates a QR code linking to the specific challan status dynamically in-memory
     try:
         base_url = request.host_url.rstrip('/')
     except RuntimeError:
@@ -54,13 +60,10 @@ def generate_qr_code(challan_id):
     qr.make(fit=True)
     img = qr.make_image(fill='black', back_color='white')
     
-    qrcodes_dir = os.path.join(app.root_path, 'static', 'qrcodes')
-    os.makedirs(qrcodes_dir, exist_ok=True)
-    
-    filename = f"{challan_id}.png"
-    filepath = os.path.join(qrcodes_dir, filename)
-    img.save(filepath)
-    return f"/static/qrcodes/{filename}"
+    img_io = io.BytesIO()
+    img.save(img_io, 'PNG')
+    img_io.seek(0)
+    return send_file(img_io, mimetype='image/png')
 
 @app.route('/')
 def index():
@@ -104,13 +107,8 @@ def admin_dashboard():
             fine_amount=fine_amount
         )
         
-        # Save to DB first to get object setup
+        # Save to DB
         db.session.add(new_violation)
-        db.session.commit()
-        
-        # Generate QR Code
-        qr_path = generate_qr_code(challan_id)
-        new_violation.qr_code_path = qr_path
         db.session.commit()
         
         flash('Violation recorded successfully!', 'success')
