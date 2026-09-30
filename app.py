@@ -17,6 +17,8 @@ if db_url.startswith("postgres://") or db_url.startswith("postgresql://"):
     # Force SQLAlchemy to use psycopg2 instead of psycopg3
     db_url = db_url.replace("postgres://", "postgresql+psycopg2://", 1)
     db_url = db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+    if "supabase" in db_url and "sslmode" not in db_url:
+        db_url += "&sslmode=require" if "?" in db_url else "?sslmode=require"
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -161,13 +163,16 @@ def search_vehicle():
 
 # Initialize database automatically when the app starts
 with app.app_context():
-    db.create_all()
-    # Create an admin user if none exists
-    if not User.query.filter_by(username='admin').first():
-        hashed_password = generate_password_hash('admin123', method='pbkdf2:sha256')
-        admin = User(username='admin', password=hashed_password, role='admin')
-        db.session.add(admin)
-        db.session.commit()
+    try:
+        db.create_all()
+        # Create an admin user if none exists
+        if not User.query.filter_by(username='admin').first():
+            hashed_password = generate_password_hash('admin123', method='pbkdf2:sha256')
+            admin = User(username='admin', password=hashed_password, role='admin')
+            db.session.add(admin)
+            db.session.commit()
+    except Exception as e:
+        print(f"Warning: Database initialization failed. Check your DATABASE_URL. Error: {e}")
 
 if __name__ == '__main__':
     app.run(debug=True)
