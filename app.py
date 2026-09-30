@@ -12,7 +12,12 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'
 
 # Support both local SQLite and Cloud PostgreSQL (Supabase)
-db_url = os.environ.get('DATABASE_URL', 'sqlite:///traffic.db')
+db_url = os.environ.get('DATABASE_URL', 'sqlite:///traffic.db').strip()
+
+# Auto-fix if user forgot the protocol prefix
+if "://" not in db_url:
+    db_url = "postgresql+psycopg2://" + db_url
+
 if db_url.startswith("postgres://") or db_url.startswith("postgresql://"):
     # Force SQLAlchemy to use psycopg2 instead of psycopg3
     db_url = db_url.replace("postgres://", "postgresql+psycopg2://", 1)
