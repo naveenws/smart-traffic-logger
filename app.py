@@ -13,8 +13,10 @@ app.config['SECRET_KEY'] = 'your-secret-key-here'
 
 # Support both local SQLite and Cloud PostgreSQL (Supabase)
 db_url = os.environ.get('DATABASE_URL', 'sqlite:///traffic.db')
-if db_url.startswith("postgres://"):
-    db_url = db_url.replace("postgres://", "postgresql://", 1)
+if db_url.startswith("postgres://") or db_url.startswith("postgresql://"):
+    # Force SQLAlchemy to use psycopg2 instead of psycopg3
+    db_url = db_url.replace("postgres://", "postgresql+psycopg2://", 1)
+    db_url = db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
