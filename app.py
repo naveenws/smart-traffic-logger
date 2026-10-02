@@ -22,8 +22,10 @@ if db_url.startswith("postgres://") or db_url.startswith("postgresql://"):
     # Force SQLAlchemy to use pure-python pg8000 to bypass Python 3.14 C-API bugs on Render
     db_url = db_url.replace("postgres://", "postgresql+pg8000://", 1)
     db_url = db_url.replace("postgresql://", "postgresql+pg8000://", 1)
-    if "supabase" in db_url and "sslmode" not in db_url:
-        db_url += "&sslmode=require" if "?" in db_url else "?sslmode=require"
+    # pg8000 does not support standard PostgreSQL URL parameters and will crash if they are present.
+    # We strip the entire query string (anything after '?') because it negotiates SSL automatically.
+    if "?" in db_url:
+        db_url = db_url.split("?")[0]
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
