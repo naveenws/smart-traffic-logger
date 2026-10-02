@@ -16,12 +16,12 @@ db_url = os.environ.get('DATABASE_URL', 'sqlite:///traffic.db').strip()
 
 # Auto-fix if user forgot the protocol prefix
 if "://" not in db_url:
-    db_url = "postgresql+psycopg2://" + db_url
+    db_url = "postgresql+pg8000://" + db_url
 
 if db_url.startswith("postgres://") or db_url.startswith("postgresql://"):
-    # Force SQLAlchemy to use psycopg2 instead of psycopg3
-    db_url = db_url.replace("postgres://", "postgresql+psycopg2://", 1)
-    db_url = db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+    # Force SQLAlchemy to use pure-python pg8000 to bypass Python 3.14 C-API bugs on Render
+    db_url = db_url.replace("postgres://", "postgresql+pg8000://", 1)
+    db_url = db_url.replace("postgresql://", "postgresql+pg8000://", 1)
     if "supabase" in db_url and "sslmode" not in db_url:
         db_url += "&sslmode=require" if "?" in db_url else "?sslmode=require"
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
